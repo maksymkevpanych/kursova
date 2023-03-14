@@ -14,38 +14,61 @@ namespace DemoWebApp.Controllers
         {
             this.service = service;
         }
-        
+
         [HttpGet]
         public IActionResult Read(
-            [FromQuery] User filterBy,
+            [FromQuery] string name,
+            [FromQuery] string email,
             [FromQuery] string orderBy = "Id",
             [FromQuery] string order = "asc",
             [FromQuery] int page = 1,
             [FromQuery] int perPage = 25)
         {
-            return Ok(new {
-                count = service.Count(filterBy),
-                items = service.Read(filterBy, orderBy, order, page, perPage)
+            var filterBy = new User()
+            {
+                Name = name,
+                Email = email
+            };
+
+            return Ok(new Response()
+            {
+                Status = 200,
+                Data = new
+                {
+                    count = service.Count(filterBy),
+                    items = service.Read(filterBy, orderBy, order, page, perPage)
+                }
             });
         }
 
         [HttpGet("{id}")]
         public IActionResult ReadById(int id)
         {
-            return Ok(service.Read(id));
+            return Ok(new Response()
+            {
+                Status = 200,
+                Data = service.Read(id)
+            });
         }
 
         [HttpPost]
         public IActionResult Create([FromBody] User user)
         {
-            return Ok(service.Create(user));
+            return Created(nameof(User), new Response()
+            {
+                Status = 201,
+                Data = service.Create(user)
+            });
         }
 
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
             service.Delete(id);
-            return Ok();
+            return Ok(new Response()
+            {
+                Status = 200
+            });
         }
 
         [HttpPut("{id}")]
@@ -53,7 +76,10 @@ namespace DemoWebApp.Controllers
         {
             user.Id = id;
             service.Update(user);
-            return Ok();
+            return Ok(new Response()
+            {
+                Status = 200
+            });
         }
     }
 }
