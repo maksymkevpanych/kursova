@@ -29,9 +29,42 @@ namespace DemoWebApp.Services.Repositories
             context.SaveChanges();
         }
 
-        public List<User> Read()
+        public List<User> Read(User filterBy, string orderBy, string order, int page, int perPage)
         {
-            return context.Users.ToList();
+            var filteredItems = context.Users
+                .Where(user =>
+                    (filterBy.Name != null ? user.Name.ToLower().Contains(filterBy.Name.ToLower()) : true)
+                    &&
+                    (filterBy.Email != null ? user.Email.ToLower().Contains(filterBy.Email.ToLower()) : true));
+
+            IOrderedQueryable<User> orderedItems;
+
+            switch ($"{orderBy}_{order}".ToLower())
+            {
+                case "id_desc":
+                    orderedItems = filteredItems.OrderByDescending(u => u.Id);
+                    break;
+                case "name_asc":
+                    orderedItems = filteredItems.OrderBy(u => u.Name);
+                    break;
+                case "name_desc":
+                    orderedItems = filteredItems.OrderByDescending(u => u.Name);
+                    break;
+                case "email_asc":
+                    orderedItems = filteredItems.OrderBy(u => u.Email);
+                    break;
+                case "email_desc":
+                    orderedItems = filteredItems.OrderByDescending(u => u.Email);
+                    break;
+                default:
+                    orderedItems = filteredItems.OrderBy(u => u.Id);
+                    break;
+            };
+
+            return orderedItems
+                .Skip((page - 1)* perPage)
+                .Take(perPage)
+                .ToList();
         }
 
         public User Read(int id)
@@ -43,6 +76,15 @@ namespace DemoWebApp.Services.Repositories
         {
             context.Users.Update(entity);
             context.SaveChanges();
+        }
+
+        public int Count(User filterBy)
+        {
+            return context.Users
+                .Count(user =>
+                    (filterBy.Name != null ? user.Name.ToLower().Contains(filterBy.Name.ToLower()) : true)
+                    &&
+                    (filterBy.Email != null ? user.Email.ToLower().Contains(filterBy.Email.ToLower()) : true));
         }
     }
 }
