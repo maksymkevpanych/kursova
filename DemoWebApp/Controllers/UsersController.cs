@@ -1,6 +1,7 @@
 ﻿using DemoWebApp.Models;
 using DemoWebApp.Services.Repositories;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 
 namespace DemoWebApp.Controllers
 {
@@ -8,11 +9,11 @@ namespace DemoWebApp.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
-        private readonly IRepository<User> service;
+        private readonly UsersRepositoryService service;
 
         public UsersController(IRepository<User> service)
         {
-            this.service = service;
+            this.service = (UsersRepositoryService)service;
         }
 
         [HttpGet]
@@ -54,6 +55,25 @@ namespace DemoWebApp.Controllers
         [HttpPost]
         public IActionResult Create([FromBody] User user)
         {
+            var errors = new Dictionary<string, List<string>>();
+            if (service.UserNameExist(user))
+            {
+                errors.Add("Name", new List<string>() { "A user with this name already exists." });
+            }
+            if (service.EmailExist(user))
+            {
+                errors.Add("Email", new List<string>() { "A user with this email already exists." });
+            }
+
+            if (errors.Count > 0)
+            {
+                return BadRequest(new Response()
+                {
+                    Status = 400,
+                    Errors = errors
+                });
+            }
+
             return Created(nameof(User), new Response()
             {
                 Status = 201,
@@ -65,6 +85,7 @@ namespace DemoWebApp.Controllers
         public IActionResult Delete(int id)
         {
             service.Delete(id);
+
             return Ok(new Response()
             {
                 Status = 200
@@ -75,7 +96,28 @@ namespace DemoWebApp.Controllers
         public IActionResult Update(int id, [FromBody] User user)
         {
             user.Id = id;
+
+            var errors = new Dictionary<string, List<string>>();
+            if (service.UserNameExist(user))
+            {
+                errors.Add("Name", new List<string>() { "A user with this name already exists." });
+            }
+            if (service.EmailExist(user))
+            {
+                errors.Add("Email", new List<string>() { "A user with this email already exists." });
+            }
+
+            if (errors.Count > 0)
+            {
+                return BadRequest(new Response()
+                {
+                    Status = 400,
+                    Errors = errors
+                });
+            }
+
             service.Update(user);
+
             return Ok(new Response()
             {
                 Status = 200
