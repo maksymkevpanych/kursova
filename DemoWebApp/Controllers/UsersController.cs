@@ -16,9 +16,17 @@ namespace DemoWebApp.Controllers
         }
         
         [HttpGet]
-        public IActionResult Read()
+        public IActionResult Read(
+            [FromQuery] User filterBy,
+            [FromQuery] string orderBy = "Id",
+            [FromQuery] string order = "asc",
+            [FromQuery] int page = 1,
+            [FromQuery] int perPage = 25)
         {
-            return Ok(service.Read());
+            return Ok(new {
+                count = service.Count(filterBy),
+                items = service.Read(filterBy, orderBy, order, page, perPage)
+            });
         }
 
         [HttpGet("{id}")]
@@ -27,7 +35,7 @@ namespace DemoWebApp.Controllers
             return Ok(service.Read(id));
         }
 
-        [HttpPost] 
+        [HttpPost]
         public IActionResult Create([FromBody] User user)
         {
             return Ok(service.Create(user));
