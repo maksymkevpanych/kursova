@@ -1,6 +1,7 @@
 ﻿using DemoWebApp.Models;
 using DemoWebApp.Services.Repositories;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 
 namespace DemoWebApp.Controllers
 {
@@ -8,52 +9,119 @@ namespace DemoWebApp.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
-        private readonly IRepository<User> service;
+        private readonly UsersRepositoryService service;
 
         public UsersController(IRepository<User> service)
         {
-            this.service = service;
+            this.service = (UsersRepositoryService)service;
         }
-        
+
         [HttpGet]
         public IActionResult Read(
-            [FromQuery] User filterBy,
+            [FromQuery] string name,
+            [FromQuery] string email,
             [FromQuery] string orderBy = "Id",
             [FromQuery] string order = "asc",
             [FromQuery] int page = 1,
             [FromQuery] int perPage = 25)
         {
-            return Ok(new {
-                count = service.Count(filterBy),
-                items = service.Read(filterBy, orderBy, order, page, perPage)
+            var filterBy = new User()
+            {
+                Name = name,
+                Email = email
+            };
+
+            return Ok(new Response()
+            {
+                Status = 200,
+                Data = new
+                {
+                    count = service.Count(filterBy),
+                    items = service.Read(filterBy, orderBy, order, page, perPage)
+                }
             });
         }
 
         [HttpGet("{id}")]
         public IActionResult ReadById(int id)
         {
-            return Ok(service.Read(id));
+            return Ok(new Response()
+            {
+                Status = 200,
+                Data = service.Read(id)
+            });
         }
 
         [HttpPost]
         public IActionResult Create([FromBody] User user)
         {
-            return Ok(service.Create(user));
+            var errors = new Dictionary<string, List<string>>();
+            if (service.UserNameExist(user))
+            {
+                errors.Add("Name", new List<string>() { "A user with this name already exists." });
+            }
+            if (service.EmailExist(user))
+            {
+                errors.Add("Email", new List<string>() { "A user with this email already exists." });
+            }
+
+            if (errors.Count > 0)
+            {
+                return BadRequest(new Response()
+                {
+                    Status = 400,
+                    Errors = errors
+                });
+            }
+
+            return Created(nameof(User), new Response()
+            {
+                Status = 201,
+                Data = service.Create(user)
+            });
         }
 
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
             service.Delete(id);
-            return Ok();
+
+            return Ok(new Response()
+            {
+                Status = 200
+            });
         }
 
         [HttpPut("{id}")]
         public IActionResult Update(int id, [FromBody] User user)
         {
             user.Id = id;
+
+            var errors = new Dictionary<string, List<string>>();
+            if (service.UserNameExist(user))
+            {
+                errors.Add("Name", new List<string>() { "A user with this name already exists." });
+            }
+            if (service.EmailExist(user))
+            {
+                errors.Add("Email", new List<string>() { "A user with this email already exists." });
+            }
+
+            if (errors.Count > 0)
+            {
+                return BadRequest(new Response()
+                {
+                    Status = 400,
+                    Errors = errors
+                });
+            }
+
             service.Update(user);
-            return Ok();
+
+            return Ok(new Response()
+            {
+                Status = 200
+            });
         }
     }
 }

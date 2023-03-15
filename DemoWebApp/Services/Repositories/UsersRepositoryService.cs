@@ -86,5 +86,15 @@ namespace DemoWebApp.Services.Repositories
                     &&
                     (filterBy.Email != null ? user.Email.ToLower().Contains(filterBy.Email.ToLower()) : true));
         }
+
+        public bool UserNameExist(User user)
+        {
+            return context.Users.Any(u => u.Id != user.Id && u.Name.ToLower() == user.Name.ToLower());
+        }
+
+        public bool EmailExist(User user)
+        {
+            return context.Users.Any(u => u.Id != user.Id && u.Email.ToLower() == user.Email.ToLower());
+        }
     }
 }
