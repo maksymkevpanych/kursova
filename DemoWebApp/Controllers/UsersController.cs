@@ -1,12 +1,14 @@
 ﻿using DemoWebApp.Models;
 using DemoWebApp.Services.Repositories;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using System.Collections.Generic;
 
 namespace DemoWebApp.Controllers
 {
     [Route("api/users")]
     [ApiController]
+    [Authorize(Roles = "admin")]
     public class UsersController : ControllerBase
     {
         private readonly UsersRepositoryService service;
@@ -96,6 +98,7 @@ namespace DemoWebApp.Controllers
         public IActionResult Update(int id, [FromBody] User user)
         {
             user.Id = id;
+            //user.Password = entity.Password;
 
             var errors = new Dictionary<string, List<string>>();
             if (service.UserNameExist(user))
