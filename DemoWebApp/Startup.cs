@@ -6,6 +6,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using DemoWebApp.Handlers;
+using DemoWebApp.Services;
 
 namespace DemoWebApp
 {
@@ -25,9 +27,15 @@ namespace DemoWebApp
             {
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
             });
-
+            services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
             services.AddScoped<IRepository<User>, UsersRepositoryService>();
-
+            services.AddScoped<IAuthService, AuthService>();
+            services.AddAuthentication("JwtBearerAuthentication")
+                .AddScheme<JwtBearerAuthenticationOptions, JwtBearerAuthenticationHandler>("JwtBearerAuthentication", options =>
+                {
+                    options.JwtKey = Configuration["AppSettings:JwtKey"];
+                    options.JwtIssuer = Configuration["AppSettings:JwtIssuer"];
+                });
             services.AddControllers();
         }
 
@@ -41,6 +49,7 @@ namespace DemoWebApp
 
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>

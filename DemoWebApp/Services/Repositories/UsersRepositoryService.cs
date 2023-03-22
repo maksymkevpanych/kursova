@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using DemoWebApp.Helpers;
 
 namespace DemoWebApp.Services.Repositories
 {
@@ -16,10 +17,19 @@ namespace DemoWebApp.Services.Repositories
 
         public User Create(User entity)
         {
+            entity.Password = CryptoHelper.EncryptPassword(entity.Password);
             var entityEntry = context.Users.Add(entity);
             context.SaveChanges();
 
-            return entityEntry.Entity;
+            return new User()
+            {
+                Id = entityEntry.Entity.Id,
+                Name = entityEntry.Entity.Name,
+                Email = entityEntry.Entity.Email,
+                DisplayName = entityEntry.Entity.DisplayName,
+                Age = entityEntry.Entity.Age,
+                isAdmin = entityEntry.Entity.isAdmin
+            };
         }
 
         public void Delete(int id)
@@ -64,18 +74,48 @@ namespace DemoWebApp.Services.Repositories
             return orderedItems
                 .Skip((page - 1)* perPage)
                 .Take(perPage)
+                .Select(user => new User()
+                {
+                    Id = user.Id,
+                    Email = user.Email,
+                    Name = user.Name,
+                    DisplayName = user.DisplayName,
+                    Age = user.Age,
+                    isAdmin = user.isAdmin
+                })
                 .ToList();
         }
 
         public User Read(int id)
         {
-            return context.Users.FirstOrDefault(user => user.Id == id);
+            var user = context.Users.FirstOrDefault(user => user.Id == id);
+
+            if (user == null) return null;
+
+            return new User()
+            {
+                Id = user.Id,
+                Name = user.Name,
+                Email = user.Email,
+                DisplayName = user.DisplayName,
+                Age = user.Age,
+                isAdmin = user.isAdmin
+            };
         }
 
-        public void Update(User entity)
+        public void Update(User user)
         {
-            context.Users.Update(entity);
-            context.SaveChanges();
+            var entity = context.Users.FirstOrDefault(u => u.Id == user.Id);
+            if (entity != null)
+            {
+                entity.Email = user.Email;
+                entity.Name = user.Name;
+                entity.DisplayName = user.DisplayName;
+                entity.Age = user.Age;
+                entity.isAdmin = user.isAdmin;
+
+                context.SaveChanges();
+            }
         }
 
         public int Count(User filterBy)
