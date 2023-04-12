@@ -29,6 +29,7 @@ namespace DemoWebApp
             });
             services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
             services.AddScoped<IRepository<User>, UsersRepositoryService>();
+            services.AddScoped<IRepository<Post>, PostsRepositoryService>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddAuthentication("JwtBearerAuthentication")
                 .AddScheme<JwtBearerAuthenticationOptions, JwtBearerAuthenticationHandler>("JwtBearerAuthentication", options =>
@@ -36,7 +37,9 @@ namespace DemoWebApp
                     options.JwtKey = Configuration["AppSettings:JwtKey"];
                     options.JwtIssuer = Configuration["AppSettings:JwtIssuer"];
                 });
-            services.AddControllers();
+            services.AddControllers().AddNewtonsoftJson(options =>
+                options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
+            );
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

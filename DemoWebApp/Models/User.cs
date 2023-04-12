@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Text.Json.Serialization;
+using System.Collections.Generic;
+using DemoWebApp.Models;
 
 namespace DemoWebApp.Models
 {
@@ -32,6 +33,9 @@ namespace DemoWebApp.Models
         public string Password { get; set; }
 
         public bool isAdmin { get; set; }
+
+        public ICollection<Post> Posts { get; }
+        public ICollection<CommentToPost> CommentToPosts { get; }
     }
 
     public class TokenedUser : User
