@@ -7,6 +7,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using DemoWebApp.Models;
 using Microsoft.AspNetCore.Authentication;
+using Newtonsoft.Json;
 
 namespace DemoWebApp.Helpers
 {
@@ -52,7 +53,15 @@ namespace DemoWebApp.Helpers
             {
                 Subject = new ClaimsIdentity(new []
                 {
-                    new Claim(ClaimTypes.Role, user.isAdmin ? "admin" : "user")
+                    new Claim(ClaimTypes.Role, user.isAdmin ? "admin" : "user"),
+                    new Claim(ClaimTypes.UserData, JsonConvert.SerializeObject(new User()
+                    {
+                        Id = user.Id,
+                        Email = user.Email,
+                        Name = user.Name,
+                        DisplayName = user.DisplayName,
+                        isAdmin = user.isAdmin
+                    }))
                 }),
                 Expires = DateTime.UtcNow.AddMinutes(120),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
@@ -62,6 +71,11 @@ namespace DemoWebApp.Helpers
             var token = tokenHandler.CreateToken(tokenDescriptor);
 
             return tokenHandler.WriteToken(token);
+        }
+
+        public static User GetUser(ClaimsPrincipal user)
+        {
+            return JsonConvert.DeserializeObject<User>(user?.Identities.FirstOrDefault()?.Claims.FirstOrDefault(t => t.Type == ClaimTypes.UserData)?.Value);
         }
     }
 }
