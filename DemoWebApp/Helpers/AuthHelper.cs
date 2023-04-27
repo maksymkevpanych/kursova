@@ -33,7 +33,7 @@ namespace DemoWebApp.Helpers
                     return null;
                 }
 
-                var identity = new ClaimsIdentity(((JwtSecurityToken)validatedToken).Claims);
+                var identity = new ClaimsIdentity(((JwtSecurityToken)validatedToken).Claims, "JwtBearerAuthentication");
 
                 return new AuthenticationTicket(new ClaimsPrincipal(identity), "JwtBearerAuthentication");
             } catch {
