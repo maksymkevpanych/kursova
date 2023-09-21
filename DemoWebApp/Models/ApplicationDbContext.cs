@@ -8,6 +8,9 @@ namespace DemoWebApp.Models
         public DbSet<User> Users => Set<User>();
         public DbSet<Post> Posts => Set<Post>();
         public DbSet<CommentToPost> Comments => Set<CommentToPost>();
+
+        /* to-do: додати колекції для чатів та меседжів */
+
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
             //Database.EnsureDeleted();
@@ -36,6 +39,8 @@ namespace DemoWebApp.Models
                 .HasForeignKey(comment => comment.UserId)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.NoAction);
+
+            /* to-do: додати опис моделей для чатів та меседжів */
         }
     }
 }

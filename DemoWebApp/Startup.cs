@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using DemoWebApp.Handlers;
 using DemoWebApp.Services;
+using DemoWebApp.Hubs;
 
 namespace DemoWebApp
 {
@@ -40,6 +41,9 @@ namespace DemoWebApp
             services.AddControllers().AddNewtonsoftJson(options =>
                 options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
             );
+            services.AddSignalR().AddNewtonsoftJsonProtocol(options => {
+                options.PayloadSerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -48,6 +52,14 @@ namespace DemoWebApp
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+
+                /* додаємо це правила для можливості під час розробки тестувати сокети із клієнтської сторони */
+                app.UseCors(policy => policy
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+                    .SetIsOriginAllowed(_ => true)
+                    .AllowCredentials()
+                );
             }
 
             app.UseRouting();
@@ -58,6 +70,7 @@ namespace DemoWebApp
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapHub<ChatHub>("/hubs/chat", options => { options.Transports = Microsoft.AspNetCore.Http.Connections.HttpTransportType.WebSockets; });
             });
         }
     }
